@@ -1,0 +1,35 @@
+<html>
+<head>
+<title>HTML Frames Example - Menu 1</title>
+<style type="text/css">
+body {
+	font-family:verdana,arial,sans-serif;
+	font-size:10pt;
+	margin:10px;
+	background-color:#eeaa77;
+	}
+</style>
+        <script src="./js/angular.min.js"></script>
+        <script src="./js/app.js"></script>
+</head>
+<body ng-app="links">
+<h3>Disk Usage Visualized</h3>
+<script type="text/javascript">
+function display_alert()
+  {
+  alert("Please clean them soon:)")
+  }
+</script>
+<p><a href="#" onclick="display_alert()">don't make lchen angry</a></p>
+
+<h4>Usage Reports:</h4>
+<div ng-controller="linksController">
+    <table>
+    	<tr ng-repeat="link in links.data track by $index">
+    		<td><a href="{{link.url}}" target="content" title="{{link.user}}">
+    		{{link.name}}</a></td>
+    	</tr>
+    </table>
+</div>
+</body>
+</html>

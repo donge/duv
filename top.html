@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Disk Usage</title>
+
+    <style type="text/css">
+      * { margin: 0; padding: 0; }
+      #chart {
+        background-color: white;
+        font: 14px sans-serif;
+        margin: 0 auto 50px;
+        width: 600px;
+        height: 600px;
+      }
+        #chart .label{
+          fill: #404040;
+          font-size: 12px;
+        }
+    </style>
+
+      <!-- 新 Bootstrap 核心 CSS 文件 -->
+      <link rel="stylesheet" href="./css/bootstrap.min.css">
+      <!-- jQuery文件。务必在bootstrap.min.js 之前引入 -->
+      <script src="./js/jquery-1.11.3.min.js"></script>
+      <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+      <script src="./js/bootstrap.min.js"></script>
+      <script type="text/javascript">
+      function getParameterByName(name)
+            {
+              name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+              var regexS = "[\\?&]" + name + "=([^&#]*)";
+              var regex = new RegExp(regexS);
+              var results = regex.exec(window.location.search);
+              if(results == null)
+                return "";
+              else
+                return decodeURIComponent(results[1].replace(/\+/g, " "));
+      };
+      </script>
+  </head>
+
+  <body>
+
+
+  <div class="row">
+    <div class="col-md-8">TOP 20 Pie Chart      <!-- Chart JS -->
+      <div id="chart"></div>
+      <script src="http://d3js.org/d3.v3.min.js"></script>
+      <script type="text/javascript">
+        var width  = 800;
+            height = 800;
+            radius = width / 2.5;
+        var pie = d3.layout.pie()
+                    .value(function(d) { return d.size; });
+
+        var data_name = getParameterByName("data");
+        if (data_name == "") {
+          data_name = "data.json";
+        }  else {
+          data_name = "../../~lchen/top/" + data_name + ".json";
+        }
+
+        d3.json(data_name, function(error, json) {
+          if (error) return console.warn(error);
+          visualizeit(json);
+        });
+
+        function visualizeit(data) {
+            var name = data.name;
+            var time = data.time;
+            var sum = 0;
+            for (var i in data.data) {
+              sum += parseInt(data.data[i].size, 10);
+            }
+            data = data.data;
+            var pieData = pie(data);
+            var color = d3.scale.category20();
+            var arc = d3.svg.arc()
+            .outerRadius(radius - 20)
+            .innerRadius(radius - 90);
+            var svg = d3.select("#chart").append("svg")
+                        .attr("width", width)
+                        .attr("height", height)
+                        .append("g")
+                        .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+            var ticks = svg.selectAll("line")
+                          .data(pieData)
+                          .enter()
+                          .append("line");
+            ticks.attr("x1", 0)
+                 .attr("x2", 0)
+                 .attr("y1", -radius+4)
+                 .attr("y2", -radius-2)
+                 .attr("stroke", "gray")
+                 .attr("transform", function(d) {
+                   return "rotate(" + (d.startAngle+d.endAngle)/2 * (180/Math.PI) + ")";
+                 });
+
+            var labels = svg.selectAll("text")
+                          .data(pieData)
+                          .enter()
+                          .append("text");
+            labels.attr("class", "label")
+                  .attr("transform", function(d) {
+                     var dist   = radius + 40;
+                         angle  = (d.startAngle + d.endAngle) / 2;
+                         x      = dist * Math.sin(angle);
+                         y      = -dist * Math.cos(angle);
+                     return "translate(" + x + "," + y + ")";
+                   })
+                  .attr("dy", "0.35em")
+                  .attr("text-anchor", "middle")
+                  .text(function(d){
+                    return d.data.name + " (" + d.data.size + ")";
+                  });
+            var path = svg.selectAll("path")
+                         .data(pieData)
+                         .enter()
+                         .append("path")
+                         .attr("fill", function(d, i) { return color(i); })
+                         .attr("d", arc);
+            var name = svg.append("text")
+                                  .attr("x",-60)
+                                  .attr("y",-60)
+                                  .attr("font-size",20)
+                                  .text(name);
+            var text = svg.append("text")
+                                  .attr("x",-80)
+                                  .attr("y",-20)
+                                  .attr("font-size",30)
+                                  .text(sum / 1000000 + " G");
+            var time = svg.append("text")
+                                  .attr("x",-100)
+                                  .attr("y",20)
+                                  .attr("font-size",20)
+                                  .text(time);
+        }
+      </script>
+    </div>
+
+    <div class="col-md-4">TOP 20 List
+      <table>
+        <thead>
+          <tr>
+            <th>File</th>
+            <th>Size (M)</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+      <script>
+        d3.json(data_name, function(error, json) {
+           json = json.data;
+           if (error) return console.warn(error);
+          //console.log(json);
+          var ages = d3.keys(json).filter(function(key) {
+            return key != "Name";
+          });
+          //console.log(ages);
+
+          d3.selectAll("thead th").data(json).on("click", function(k) {
+            tr.sort(function(a, b) { return b[k] - a[k]; });
+          });
+
+          var tr = d3.select("tbody").selectAll("tr")
+              .data(json)
+            .enter().append("tr");
+
+          tr.append("td")
+              .text(function(d) { return d.name; });
+          tr.append("td")
+              .text(function(d) { return d.size / 1000; });
+        });
+        </script>
+    </div>
+</div>
+
+
+</body>
+</html>
